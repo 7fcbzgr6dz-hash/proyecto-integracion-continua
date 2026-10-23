@@ -1,0 +1,2 @@
+# Dependencias Python de la aplicación web.
+Flask==3.1.2
