@@ -1,13 +1,19 @@
 # Compose crea una red privada y registra cada servicio en su DNS interno.
 services:
   web:
-    # Construye la imagen de Flask desde el Dockerfile de este proyecto.
     build: .
     container_name: web
     ports:
       - "5000:5000"
+
+    volumes:
+      - .:/app
+
+    # Carga las variables de entorno desde .env
+    env_file:
+      - .env
+
     depends_on:
-      # Espera a que MySQL responda antes de iniciar la aplicación web.
       db:
         condition: service_healthy
 
@@ -15,22 +21,50 @@ services:
     # MySQL 8 se descubre desde web usando el nombre DNS "db".
     image: mysql:8.0
     container_name: db
+
     environment:
-      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: universidad
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
     ports:
       - "3306:3306"
+
     volumes:
-      # Conserva los datos de MySQL aunque se recreen los contenedores.
       - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
     healthcheck:
-      # La contraseña se expande dentro del contenedor, no en el host.
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} || exit 1",
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
       start_period: 20s
 
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+
+    container_name: jenkins
+    privileged: true
+    user: root
+
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+
 # Volumen administrado por Docker para persistir la base de datos.
+# Volúmenes persistentes administrados por Docker.
 volumes:
   mysql_data:
+  jenkins_home:

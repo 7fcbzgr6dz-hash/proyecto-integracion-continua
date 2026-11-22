@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>CornFlow Planner</title>
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+
+  <body>
+    <header class="header">
+      <h1>🌽 CornFlow Planner</h1>
+
+      <h3>
+        Sistema de Planeación y Gestión Operativa para Refinería de Jarabes de
+        Maíz
+      </h3>
+    </header>
+
+    <section class="card">
+      <h2>Registrar nuevo producto</h2>
+
+      <form action="{{ url_for('crear_producto') }}" method="POST">
+        <div>
+          <label for="codigo">Código:</label>
+          <input
+            type="text"
+            id="codigo"
+            name="codigo"
+            maxlength="30"
+            required
+            placeholder="Ej. M-2000"
+          />
+        </div>
+
+        <div>
+          <label for="nombre">Nombre:</label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            maxlength="100"
+            required
+            placeholder="Nombre del producto"
+          />
+        </div>
+
+        <div>
+          <label for="descripcion">Descripción:</label>
+          <textarea
+            id="descripcion"
+            name="descripcion"
+            placeholder="Descripción opcional"
+          ></textarea>
+        </div>
+
+        <button type="submit">Registrar producto</button>
+      </form>
+
+      {% with mensajes = get_flashed_messages(with_categories=true) %} {% if
+      mensajes %} {% for categoria, mensaje in mensajes %}
+      <p>{{ mensaje }}</p>
+      {% endfor %} {% endif %} {% endwith %}
+    </section>
+
+    <main>
+      <section class="card">
+        <h2>Capacidad Instalada</h2>
+        <p><strong>350 Toneladas por Turno</strong></p>
+      </section>
+
+      <section class="card">
+        <h2>Referencias Activas</h2>
+
+        {% if productos %}
+
+        <ul>
+          {% for producto in productos %} {% if producto.activo %}
+          <li>
+            <strong>{{ producto.codigo }}</strong>
+            - {{ producto.nombre }}
+
+            <details>
+              <summary>Editar producto</summary>
+
+              <form
+                action="{{ url_for('editar_producto', producto_id=producto.id) }}"
+                method="POST"
+              >
+                <div>
+                  <label>Nombre:</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value="{{ producto.nombre }}"
+                    maxlength="100"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label>Descripción:</label>
+                  <textarea name="descripcion">
+{{ producto.descripcion or '' }}</textarea
+                  >
+                </div>
+
+                <button type="submit">Guardar cambios</button>
+              </form>
+            </details>
+
+            <form
+              action="{{ url_for('desactivar_producto', producto_id=producto.id) }}"
+              method="POST"
+              onsubmit="
+                return confirm(
+                  '¿Estás seguro de que deseas desactivar este producto?',
+                );
+              "
+            >
+              <button type="submit">Desactivar</button>
+            </form>
+          </li>
+          {% endif %} {% endfor %}
+        </ul>
+
+        {% else %}
+
+        <p>No hay productos registrados.</p>
+
+        {% endif %}
+      </section>
+
+      <section class="card">
+        <h2>Estado de Infraestructura</h2>
+
+        <p>🌐 Aplicación Web: ✅ Activa</p>
+        <p>🗄️ Base de Datos: {{ estado_db }}</p>
+        <p>📍 IP Base de Datos: {{ ip_db }}</p>
+      </section>
+
+      <section class="card">
+        <h2>Próximos Módulos</h2>
+
+        <ul>
+          <li>Planeación Semanal</li>
+          <li>Programación de Producción</li>
+          <li>Control de Inventarios</li>
+          <li>Capacidad de Planta</li>
+          <li>Cumplimiento de Demanda</li>
+          <li>Programación de Despachos</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

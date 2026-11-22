@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia la aplicación y ejecuta el contenedor con un usuario sin privilegios.
-COPY app.py .
+COPY . .
 RUN adduser --disabled-password --gecos "" appuser \
     && chown -R appuser:appuser /app
 USER appuser
